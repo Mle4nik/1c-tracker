@@ -24,8 +24,32 @@ const state = async () => {
 }
 
 const app = express()
+
+// Разрешаем запросы с production-фронтенда Vercel и локального Vite.
+// FRONTEND_URL на Railway: точный production-домен Vercel.
+const allowedOrigins = (process.env.FRONTEND_URL || '')
+  .split(',')
+  .map(origin => origin.trim())
+  .filter(Boolean)
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin
+  const isLocalDev = origin === 'http://localhost:5173' || origin === 'http://127.0.0.1:5173'
+
+  if (origin && (allowedOrigins.includes(origin) || isLocalDev)) {
+    res.setHeader('Access-Control-Allow-Origin', origin)
+    res.setHeader('Vary', 'Origin')
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
+  }
+
+  if (req.method === 'OPTIONS') return res.sendStatus(204)
+  next()
+})
+
 app.use(express.json())
 
+app.get('/api/health', (_req, res) => res.json({ ok: true, service: '1c-developer-quest-api' }))
 app.get('/api/state', async (_req, res) => res.json({ state: await state() }))
 
 let syncing = null
@@ -50,4 +74,4 @@ const dist = path.join(root, 'dist')
 if (existsSync(dist)) app.use(express.static(dist))
 
 const port = process.env.PORT || 3001
-app.listen(port, () => console.log(`Quest API: http://localhost:${port}`))
+app.listen(port, '0.0.0.0', () => console.log(`Quest API listening on port ${port}`))

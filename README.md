@@ -30,3 +30,14 @@
 
 `quest.config.json` — какие разделы входят в какой этап. Раздел указывается по `id`, поле `note` — просто подпись.
 `data/snapshot.json` — последний снимок Stepik (обновляется синхронизацией).
+
+
+## Деплой Vercel + Railway
+
+- Frontend (Vercel): `VITE_API_URL` = публичный домен Railway, например `https://your-api.up.railway.app` (без `/` в конце).
+- Backend (Railway): `STEPIK_CLIENT_ID`, `STEPIK_CLIENT_SECRET`, `FRONTEND_URL` = точный production-домен Vercel, например `https://your-quest.vercel.app`.
+- Railway Start Command: `npm start` (скрипт `start` запускает `node server/index.js`, без обязательного `.env`).
+- После изменения переменных Vercel нужно сделать redeploy frontend; после изменения переменных Railway — redeploy backend.
+- Проверка backend: откройте `https://your-api.up.railway.app/api/health`, ответ должен содержать `{"ok":true,...}`.
+
+Локально `npm run dev` по-прежнему использует `.env` и Vite proxy на `localhost:3001`.

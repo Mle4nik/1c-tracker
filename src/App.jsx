@@ -20,8 +20,12 @@ const ago = iso => {
   return m < 1 ? 'только что' : m < 60 ? `${m} мин назад` : m < 1440 ? `${Math.round(m / 60)} ч назад` : `${Math.round(m / 1440)} д назад`
 }
 
+// В production адрес API берём из Vercel Environment Variables.
+// Локально VITE_API_URL пустой, поэтому работает proxy из vite.config.js.
+const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/+$/, '')
+
 async function api(url, opts) {
-  const res = await fetch(url, opts)
+  const res = await fetch(`${API_BASE}${url}`, opts)
   const json = await res.json().catch(() => ({}))
   if (!res.ok) throw new Error(json.error || `Ошибка ${res.status}`)
   return json
